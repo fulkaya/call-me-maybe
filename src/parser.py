@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import List, cast
 
 
 def parse_function_definition(file_path: Path) -> dict:
@@ -25,4 +26,4 @@ def parse_function_definition(file_path: Path) -> dict:
 
 def parse_calling_tests(file_path: Path) -> list[dict]:
     with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        return cast(List[dict], json.load(f))
