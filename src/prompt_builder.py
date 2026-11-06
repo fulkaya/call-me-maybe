@@ -31,6 +31,9 @@ def build_argument_prompt(query: str, fn_name: str, fn_info: dict) -> str:
         f"Description: {desc}\n"
         f"Parameters: {params}\n"
         f"User query: {query}\n"
+        "Extract the exact input arguments from the user query. "
+        "Do NOT execute the function or transform the values. "
+        "Use only the parameter names defined above.\n"
         f"Output arguments as JSON:\n"
         "Arguments: {"
     )
