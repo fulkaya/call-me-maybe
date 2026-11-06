@@ -20,3 +20,18 @@ def build_prompt(query: str, parsed_data: dict) -> str:
     prompt += "Chosen function: "
 
     return prompt
+
+
+def build_argument_prompt(query: str, fn_name: str, fn_info: dict) -> str:
+    desc = fn_info["description"]
+    params = fn_info["parameters"]
+
+    prompt = (
+        f"Function: {fn_name}\n"
+        f"Description: {desc}\n"
+        f"Parameters: {params}\n"
+        f"User query: {query}\n"
+        f"Output arguments as JSON:\n"
+        "Arguments: {"
+    )
+    return prompt
