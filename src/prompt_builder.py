@@ -35,6 +35,6 @@ def build_argument_prompt(query: str, fn_name: str, fn_info: dict) -> str:
         "Do NOT execute the function or transform the values. "
         "Use only the parameter names defined above.\n"
         f"Output arguments as JSON:\n"
-        "Arguments: {"
+        'Arguments: {"'
     )
     return prompt

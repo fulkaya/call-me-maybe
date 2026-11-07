@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from llm_sdk import Small_LLM_Model
 from src.parser import parse_calling_tests, parse_function_definition
@@ -9,33 +10,38 @@ from src.inference import run_inference
 def main() -> None:
     functions_path = Path("data/input/function_definition.json")
     tests_path = Path("data/input/function_calling_tests.json")
+    output_path = Path("data/output/function_calls.json")
 
     functions = parse_function_definition(functions_path)
     tests = parse_calling_tests(tests_path)
 
-    first_query = tests[0]["prompt"]
-    final_prompt = build_prompt(first_query, functions)
-
-    print("--- prompt ---\n")
-    print(f"{final_prompt}\n")
-
     print("model is loading...\n")
     model = Small_LLM_Model()
-    response = run_inference(model, final_prompt).strip()
 
-    print("function that chosen by models\n")
-    print(f"{response}\n")
+    results = []
 
-    print("--- argument prompt ---\n")
-    arg_prompt = build_argument_prompt(
-        first_query, response, functions[response])
-    raw_text = run_inference(model, arg_prompt)
+    for test in tests:
+        query = test["prompt"]
+        print(f"Processing: {query}")
 
-    print(arg_prompt)
-    print(f"{raw_text}\n")
+        fn_prompt = build_prompt(query, functions)
+        chosen_fn = run_inference(model, fn_prompt).strip()
+        chosen_fn = chosen_fn.split("(")[0].strip()
 
-    parsed_arguments = parse_argument_to_dict(raw_text)
-    print(parsed_arguments)
+        arg_prompt = build_argument_prompt(
+            query, chosen_fn, functions[chosen_fn])
+        raw_text = run_inference(model, arg_prompt)
+        parsed_args = parse_argument_to_dict(
+            raw_text, functions[chosen_fn]["parameters"])
+
+        results.append({
+            "prompt": query, "name": chosen_fn, "parameters": parsed_args})
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+
+    print(f"\nResults saved to: {output_path}")
 
 
 if __name__ == "__main__":

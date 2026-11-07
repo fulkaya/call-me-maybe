@@ -29,18 +29,33 @@ def parse_calling_tests(file_path: Path) -> list[dict]:
         return cast(List[dict], json.load(f))
 
 
-def parse_argument_to_dict(raw_text: str) -> dict[str, Any]:
+def parse_argument_to_dict(
+        raw_text: str, expected_params: dict[str, str]) -> dict[str, Any]:
     text = raw_text.strip()
-    text = text.replace("'", '"')
 
     if not text.startswith("{"):
-        text = "{" + text
+        if not text.startswith('"'):
+            text = '{"' + text
+        else:
+            text = '{' + text
 
     if not text.endswith("}"):
         text = text + "}"
 
     try:
         result: dict[str, Any] = json.loads(text)
-        return result
     except json.JSONDecodeError:
-        return {}
+        try:
+            result = json.loads(text.replace("'", '"'))
+        except json.JSONDecodeError:
+            return {}
+
+    for key, val in result.items():
+        excepted_type = expected_params.get(key)
+        if excepted_type == "number":
+            try:
+                result[key] = float(val)
+            except (ValueError, TypeError):
+                pass
+
+    return result
