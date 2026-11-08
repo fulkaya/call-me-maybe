@@ -17,7 +17,7 @@ class FunctionCallResult(BaseModel):
 
 
 def main() -> None:
-    functions_path = Path("data/input/function_definition.json")
+    functions_path = Path("data/input/functions_definition.json")
     tests_path = Path("data/input/function_calling_tests.json")
     output_path = Path("data/output/function_calls.json")
 

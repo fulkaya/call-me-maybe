@@ -2,10 +2,18 @@ PYTHON = uv run python
 SRC = src
 LLM_SDK = llm_sdk
 
-.PHONY: run lint clean
+.PHONY: all install run debug lint clean
+
+all: run
+
+install:
+	uv sync
 
 run:
 	$(PYTHON) -m $(SRC)
+
+debug:
+	$(PYTHON) -m pdb -m $(SRC)
 
 lint:
 	uv run flake8 $(SRC)
