@@ -1,10 +1,19 @@
 import json
 from pathlib import Path
+from typing import Any
+from pydantic import BaseModel, Field
+
 from llm_sdk import Small_LLM_Model
 from src.parser import parse_calling_tests, parse_function_definition
 from src.parser import parse_argument_to_dict
 from src.prompt_builder import build_prompt, build_argument_prompt
 from src.inference import run_inference
+
+
+class FunctionCallResult(BaseModel):
+    prompt: str
+    name: str
+    parameters: dict[str, Any] = Field(default_factory=dict)
 
 
 def main() -> None:
@@ -18,7 +27,7 @@ def main() -> None:
     print("model is loading...\n")
     model = Small_LLM_Model()
 
-    results = []
+    results: list[dict[str, Any]] = []
 
     for test in tests:
         query = test["prompt"]
@@ -34,8 +43,14 @@ def main() -> None:
         parsed_args = parse_argument_to_dict(
             raw_text, functions[chosen_fn]["parameters"])
 
-        results.append({
-            "prompt": query, "name": chosen_fn, "parameters": parsed_args})
+        call_result = FunctionCallResult(
+            prompt=query,
+            name=chosen_fn,
+            parameters=parsed_args,
+        )
+        results.append(call_result.model_dump())
+        print(f"-> Chosen Function: {chosen_fn}")
+        print(f"-> Parameters: {parsed_args}\n")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
