@@ -1,4 +1,5 @@
 import json
+import argparse
 from pathlib import Path
 from typing import Any
 from pydantic import BaseModel, Field
@@ -16,10 +17,32 @@ class FunctionCallResult(BaseModel):
     parameters: dict[str, Any] = Field(default_factory=dict)
 
 
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--functions_definition",
+        type=Path,
+        default=Path("data/input/functions_definition.json")
+    )
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=Path("data/input/function_calling_tests.json")
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("data/output/function_calls.json")
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
-    functions_path = Path("data/input/functions_definition.json")
-    tests_path = Path("data/input/function_calling_tests.json")
-    output_path = Path("data/output/function_calls.json")
+    args = parse_arguments()
+
+    functions_path: Path = args.functions_definition
+    tests_path: Path = args.input
+    output_path: Path = args.output
 
     functions = parse_function_definition(functions_path)
     tests = parse_calling_tests(tests_path)
