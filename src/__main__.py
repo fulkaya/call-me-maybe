@@ -1,8 +1,9 @@
 import json
 import argparse
+import sys
 from pathlib import Path
 from typing import Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from llm_sdk import Small_LLM_Model
 from src.parser import parse_calling_tests, parse_function_definition
@@ -66,20 +67,34 @@ def main() -> None:
         parsed_args = parse_argument_to_dict(
             raw_text, functions[chosen_fn]["parameters"])
 
-        call_result = FunctionCallResult(
-            prompt=query,
-            name=chosen_fn,
-            parameters=parsed_args,
-        )
-        results.append(call_result.model_dump())
+        try:
+            call_result = FunctionCallResult(
+                prompt=query,
+                name=chosen_fn,
+                parameters=parsed_args,
+            )
+            results.append(call_result.model_dump())
+        except ValidationError as e:
+            print(
+                f"Warning: Validation error for prompt '{query}': {e}",
+                file=sys.stderr
+            )
+            continue
+
         print(f"-> Chosen Function: {chosen_fn}")
         print(f"-> Parameters: {parsed_args}\n")
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2, ensure_ascii=False)
-
-    print(f"\nResults saved to: {output_path}")
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=2, ensure_ascii=False)
+        print(f"\nResults saved to: {output_path}")
+    except OSError as e:
+        print(
+            f"Error: Could not write output to {output_path}: {e}",
+            file=sys.stderr
+        )
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -1,11 +1,22 @@
 import json
+import sys
 from pathlib import Path
 from typing import List, cast, Any
 
 
 def parse_function_definition(file_path: Path) -> dict:
-    with open(file_path, "r", encoding="utf-8") as f:
-        raw_list = json.load(f)
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            raw_list = json.load(f)
+    except FileNotFoundError:
+        print(
+            f"Error: Function definitions file not found: {file_path}",
+            file=sys.stderr
+        )
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON in {file_path}: {e}", file=sys.stderr)
+        sys.exit(1)
 
     parsed_data = {}
     for item in raw_list:
@@ -25,8 +36,18 @@ def parse_function_definition(file_path: Path) -> dict:
 
 
 def parse_calling_tests(file_path: Path) -> list[dict]:
-    with open(file_path, "r", encoding="utf-8") as f:
-        return cast(List[dict], json.load(f))
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return cast(List[dict], json.load(f))
+    except FileNotFoundError:
+        print(
+            f"Error: Input tests file not found: {file_path}",
+            file=sys.stderr
+        )
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON in {file_path}: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def parse_argument_to_dict(
