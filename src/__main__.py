@@ -54,6 +54,12 @@ def parse_arguments() -> argparse.Namespace:
         type=Path,
         default=Path("data/output/function_calls.json")
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Visualize prompt and generation process.",
+    )
     return parser.parse_args()
 
 
@@ -83,12 +89,17 @@ def main() -> None:
         print(f"Processing: {query}")
 
         fn_prompt = build_prompt(query, functions)
-        chosen_fn = run_inference(model, fn_prompt).strip()
+        if args.verbose:
+            print(f"\n--- Function Prompt ---\n{fn_prompt}")
+        chosen_fn = run_inference(
+            model, fn_prompt, verbose=args.verbose).strip()
         chosen_fn = chosen_fn.split("(")[0].strip()
 
         arg_prompt = build_argument_prompt(
             query, chosen_fn, functions[chosen_fn])
-        raw_text = run_inference(model, arg_prompt)
+        if args.verbose:
+            print(f"\n--- Argument Prompt ---\n{arg_prompt}")
+        raw_text = run_inference(model, arg_prompt, verbose=args.verbose)
         parsed_args = parse_argument_to_dict(
             raw_text, functions[chosen_fn]["parameters"])
 

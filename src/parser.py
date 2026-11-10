@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import List, cast, Any
 
 
-def parse_function_definition(file_path: Path) -> dict:
+def parse_function_definition(file_path: Path) -> dict[str, Any]:
     """Parse JSON function definitions into a lookup mapping.
 
     Reads schema descriptions and extracts expected parameter types for
@@ -37,12 +37,12 @@ def parse_function_definition(file_path: Path) -> dict:
         print(f"Error: Invalid JSON in {file_path}: {e}", file=sys.stderr)
         sys.exit(1)
 
-    parsed_data = {}
+    parsed_data: dict[str, Any] = {}
     for item in raw_list:
         fn_name = item["name"]
         fn_desc = item["description"]
 
-        clean_params = {}
+        clean_params: dict[str, str] = {}
         for param_name, param_info in item.get("parameters", {}).items():
             clean_params[param_name] = param_info["type"]
 
@@ -54,7 +54,7 @@ def parse_function_definition(file_path: Path) -> dict:
     return parsed_data
 
 
-def parse_calling_tests(file_path: Path) -> list[dict]:
+def parse_calling_tests(file_path: Path) -> list[dict[str, str]]:
     """Load test query cases from a JSON input file.
 
     Args:
@@ -65,7 +65,7 @@ def parse_calling_tests(file_path: Path) -> list[dict]:
     """
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            return cast(List[dict], json.load(f))
+            return cast(List[dict[str, str]], json.load(f))
     except FileNotFoundError:
         print(
             f"Error: Input tests file not found: {file_path}",
@@ -104,6 +104,15 @@ def parse_argument_to_dict(
 
     if not text.endswith("}"):
         text = text + "}"
+
+    text = (
+        text.replace("True", "true")
+        .replace("False", "false")
+        .replace("None", "null")
+    )
+
+    if ",}" in text:
+        text = text.replace(",}", "}")
 
     try:
         result: dict[str, Any] = json.loads(text)

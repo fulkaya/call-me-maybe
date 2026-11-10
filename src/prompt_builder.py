@@ -4,8 +4,10 @@ Builds structured textual prompts for LLM inference to identify the target
 function and extract argument values into JSON format.
 """
 
+from typing import Any
 
-def build_prompt(query: str, parsed_data: dict) -> str:
+
+def build_prompt(query: str, parsed_data: dict[str, Any]) -> str:
     """Construct a prompt listing available functions to select the target one.
 
     Formats the schema and signature of each function, appends the user
@@ -42,7 +44,8 @@ def build_prompt(query: str, parsed_data: dict) -> str:
     return prompt
 
 
-def build_argument_prompt(query: str, fn_name: str, fn_info: dict) -> str:
+def build_argument_prompt(
+        query: str, fn_name: str, fn_info: dict[str, Any]) -> str:
     """Construct a prompt to extract function arguments from a query.
 
     Provides the target function schema and constraints, prefilling the JSON
