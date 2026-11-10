@@ -1,9 +1,25 @@
+"""Inference module for executing autoregressive generation with
+Small_LLM_Model.
+
+Handles vocabulary extraction and token-by-token greedy decoding with
+early-stopping criteria.
+"""
+
 import json
 from typing import List, Any
 from llm_sdk import Small_LLM_Model
 
 
 def load_vocab(model: Small_LLM_Model) -> dict[str, int]:
+    """Load and parse the tokenizer vocabulary mapping from the model
+    directory.
+
+    Args:
+        model: An instance of Small_LLM_Model providing access to model assets.
+
+    Returns:
+        A dictionary mapping token strings to their corresponding integer IDs.
+    """
     vocab_path = model.get_path_to_vocab_file()
     with open(vocab_path, "r", encoding="utf-8") as f:
         data: Any = json.load(f)
@@ -12,6 +28,20 @@ def load_vocab(model: Small_LLM_Model) -> dict[str, int]:
 
 def run_inference(
         model: Small_LLM_Model, prompt: str, max_new_tokens: int = 64) -> str:
+    """Generate completion text for a given prompt using greedy decoding.
+
+    Encodes input text, iteratively predicts the next token with the highest
+    logit probability, and stops when max tokens are reached or an exit
+    character (newline or closing brace) is encountered.
+
+    Args:
+        model: The language model instance used for encoding and logits.
+        prompt: The formatted input text provided to the model.
+        max_new_tokens: Maximum number of tokens to generate before stopping.
+
+    Returns:
+        The decoded and stripped generated string.
+    """
     input_ids_tensor = model.encode(prompt)
     input_ids: List[int] = input_ids_tensor[0].tolist()
     generated_tokens: List[int] = []

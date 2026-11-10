@@ -1,3 +1,9 @@
+"""Main entry point for the function calling pipeline.
+
+Coordinates CLI parsing, prompt generation, LLM inference, argument
+extraction, and structured output formatting.
+"""
+
 import json
 import argparse
 import sys
@@ -13,12 +19,25 @@ from src.inference import run_inference
 
 
 class FunctionCallResult(BaseModel):
+    """Represents a validated function call execution result.
+
+    Attributes:
+        prompt: The raw natural language input prompt.
+        name: Name of the identified target function.
+        parameters: Dictionary containing validated argument names and values.
+    """
     prompt: str
     name: str
     parameters: dict[str, Any] = Field(default_factory=dict)
 
 
 def parse_arguments() -> argparse.Namespace:
+    """Parse command-line arguments for input and output configuration.
+
+    Returns:
+        Parsed CLI arguments containing file paths for function definitions,
+        test queries, and target output.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--functions_definition",
@@ -39,6 +58,12 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Execute the full function calling pipeline and save results to JSON.
+
+    Reads test queries and function definitions, runs two-step inference
+    (function selection followed by parameter extraction), validates
+    results via Pydantic, and writes output to disk.
+    """
     args = parse_arguments()
 
     functions_path: Path = args.functions_definition
