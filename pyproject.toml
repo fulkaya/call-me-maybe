@@ -19,3 +19,11 @@ dev = [
 
 [[tool.uv.index]]
 url = "https://download.pytorch.org/whl/cpu"
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = "llm_sdk.*"
+ignore_missing_imports = true
+follow_imports = "skip"
