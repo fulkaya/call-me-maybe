@@ -77,6 +77,13 @@ def main() -> None:
     output_path: Path = args.output
 
     functions = parse_function_definition(functions_path)
+    if not functions:
+        print(
+            f"Error: No function definitions found in {functions_path}.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     tests = parse_calling_tests(tests_path)
 
     print("model is loading...\n")
