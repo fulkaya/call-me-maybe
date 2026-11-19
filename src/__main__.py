@@ -15,7 +15,7 @@ from llm_sdk import Small_LLM_Model
 from src.parser import parse_calling_tests, parse_function_definition
 from src.parser import parse_argument_to_dict
 from src.prompt_builder import build_prompt, build_argument_prompt
-from src.inference import run_inference
+from src.inference import run_inference, load_vocab
 
 
 class FunctionCallResult(BaseModel):
@@ -82,6 +82,8 @@ def main() -> None:
     print("model is loading...\n")
     model = Small_LLM_Model()
 
+    vocab = load_vocab(model)
+
     results: list[dict[str, Any]] = []
 
     for test in tests:
@@ -92,14 +94,17 @@ def main() -> None:
         if args.verbose:
             print(f"\n--- Function Prompt ---\n{fn_prompt}")
         chosen_fn = run_inference(
-            model, fn_prompt, verbose=args.verbose).strip()
+            model, vocab, fn_prompt, allowed_functions=list(functions.keys()),
+            verbose=args.verbose).strip()
         chosen_fn = chosen_fn.split("(")[0].strip()
 
         arg_prompt = build_argument_prompt(
             query, chosen_fn, functions[chosen_fn])
         if args.verbose:
             print(f"\n--- Argument Prompt ---\n{arg_prompt}")
-        raw_text = run_inference(model, arg_prompt, verbose=args.verbose)
+        raw_text = run_inference(
+            model, vocab, arg_prompt,
+            verbose=args.verbose)
         parsed_args = parse_argument_to_dict(
             raw_text, functions[chosen_fn]["parameters"])
 

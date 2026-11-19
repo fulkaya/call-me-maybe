@@ -122,12 +122,17 @@ def parse_argument_to_dict(
         except json.JSONDecodeError:
             return {}
 
+    cleaned_result: dict[str, Any] = {}
     for key, val in result.items():
-        excepted_type = expected_params.get(key)
-        if excepted_type == "number":
+        if key not in expected_params:
+            continue
+        expected_type = expected_params[key]
+        if expected_type == "number":
             try:
-                result[key] = float(val)
+                cleaned_result[key] = float(val)
             except (ValueError, TypeError):
-                pass
+                cleaned_result[key] = val
+        else:
+            cleaned_result[key] = val
 
-    return result
+    return cleaned_result
