@@ -27,6 +27,12 @@ def parse_function_definition(file_path: Path) -> dict[str, Any]:
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             raw_list = json.load(f)
+            if not isinstance(raw_list, list):
+                print(
+                    f"Error: Expected a JSON array in {file_path}",
+                    file=sys.stderr
+                )
+                sys.exit(1)
     except FileNotFoundError:
         print(
             f"Error: Function definitions file not found: {file_path}",
