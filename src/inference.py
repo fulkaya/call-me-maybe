@@ -45,6 +45,9 @@ def constrained_mask(
                 masked[token_id] = neg_inf
                 continue
             candidate = (generated_text + token_str).lstrip()
+            if not candidate:
+                masked[token_id] = neg_inf
+                continue
             if (
                 token_str in ("\n", " ", "(")
                 and generated_text.strip() in allowed_functions
@@ -54,12 +57,10 @@ def constrained_mask(
                 masked[token_id] = neg_inf
         return masked
 
-    allowed_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                        '0123456789_":,{}[].- ')
     for token_id, token_str in vocab.items():
-        if not token_str or "\n" in token_str or "```" in token_str:
+        if not token_str or "```" in token_str:
             masked[token_id] = neg_inf
-        elif not all(ch in allowed_chars for ch in token_str):
+        elif any(ord(ch) < 32 for ch in token_str):
             masked[token_id] = neg_inf
     return masked
 
@@ -114,7 +115,7 @@ def run_inference(
         if allowed_functions is not None:
             if decoded_text.strip() in allowed_functions:
                 break
-        elif "\n" in decoded_text or "}" in decoded_text:
+        elif decoded_text.count("}") > decoded_text.count("{"):
             break
 
     if verbose:

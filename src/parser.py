@@ -127,11 +127,21 @@ def parse_argument_to_dict(
         if key not in expected_params:
             continue
         expected_type = expected_params[key]
-        if expected_type == "number":
+        if expected_type in ("number", "integer"):
             try:
-                cleaned_result[key] = float(val)
+                num_val = float(val)
+                cleaned_result[key] = (
+                    int(num_val) if expected_type == "integer" else num_val
+                )
             except (ValueError, TypeError):
                 cleaned_result[key] = val
+        elif expected_type == "boolean":
+            if isinstance(val, bool):
+                cleaned_result[key] = val
+            elif isinstance(val, str):
+                cleaned_result[key] = val.strip().lower() == "true"
+            else:
+                cleaned_result[key] = bool(val)
         else:
             cleaned_result[key] = val
 
